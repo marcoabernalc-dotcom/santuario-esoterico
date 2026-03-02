@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPlan - Organizador Diario para Profesores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- PDF Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <span class="material-icons">school</span>
+            <h1>EduPlan</h1>
+        </div>
+        <p>Tu asistente personal de gestión del tiempo</p>
+        <div class="header-actions">
+            <button class="btn btn-export" onclick="exportToPDF()"><span class="material-icons">picture_as_pdf</span>
+                PDF</button>
+            <button class="btn btn-export" onclick="exportToCSV()"><span class="material-icons">grid_on</span>
+                CSV/Excel</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-text">
+                <h2>¡Hola! Vamos a organizar un día brillante.</h2>
+                <p>Prioriza tus tareas de enseñanza, temporiza tus actividades y mantén tu mente enfocada sin estrés.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-card glass bg-primary">
+                        <span class="material-icons">event_available</span>
+                        <div>
+                            <span id="completed-count">0</span>
+                            <small>Completadas</small>
+                        </div>
+                    </div>
+                    <div class="stat-card glass bg-secondary">
+                        <span class="material-icons">pending_actions</span>
+                        <div>
+                            <span id="pending-count">0</span>
+                            <small>Pendientes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="C:/Users/miche/.gemini/antigravity/brain/08be8fea-a046-4bda-a5f5-a887368eaecf/teacher_organizer_hero_1772256207212.png"
+                    alt="Ilustración de Profesor Organizado" />
+            </div>
+        </section>
+
+        <div class="dashboard-grid">
+            <!-- Tareas y Priorizador -->
+            <section class="tasks-section glass">
+                <header class="section-header">
+                    <h3><span class="material-icons">format_list_bulleted</span> Tareas y Prioridades</h3>
+                </header>
+
+                <form id="task-form" class="task-form">
+                    <input type="text" id="task-input" placeholder="¿Qué necesitas hacer hoy?" required>
+                    <select id="priority-input">
+                        <option value="high">Alta Prioridad</option>
+                        <option value="medium" selected>Media Prioridad</option>
+                        <option value="low">Baja Prioridad</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><span class="material-icons">add</span>
+                        Agregar</button>
+                </form>
+
+                <div class="tasks-container">
+                    <div class="priority-group" id="high-priority-group">
+                        <h4 class="text-danger">Urgente / Alta</h4>
+                        <ul id="high-tasks" class="task-list"></ul>
+                    </div>
+                    <div class="priority-group" id="medium-priority-group">
+                        <h4 class="text-warning">Importante / Media</h4>
+                        <ul id="medium-tasks" class="task-list"></ul>
+                    </div>
+                    <div class="priority-group" id="low-priority-group">
+                        <h4 class="text-success">Rutina / Baja</h4>
+                        <ul id="low-tasks" class="task-list"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Temporizador Pomodoro -->
+            <section class="timer-section glass">
+                <header class="section-header">
+                    <h3><span class="material-icons">timer</span> Temporizador de Enfoque</h3>
+                </header>
+
+                <div class="timer-display">
+                    <div class="time" id="time-display">15:00</div>
+                    <div class="timer-mode" id="timer-mode">Modo Trabajo</div>
+                </div>
+
+                <div class="timer-controls">
+                    <button id="btn-start" class="btn btn-success"><span class="material-icons">play_arrow</span>
+                        Iniciar</button>
+                    <button id="btn-pause" class="btn btn-warning" disabled><span class="material-icons">pause</span>
+                        Pausar</button>
+                    <button id="btn-reset" class="btn btn-danger"><span class="material-icons">replay</span>
+                        Reiniciar</button>
+                </div>
+
+                <div class="timer-settings">
+                    <div class="custom-timer">
+                        <input type="number" id="custom-minutes" placeholder="Min" min="1" max="120" value="15">
+                        <button class="btn btn-outline" onclick="setCustomTimer()">Aplicar</button>
+                    </div>
+                    <div class="timer-presets">
+                        <button class="btn btn-outlinePreset" onclick="setTimer(15)">15m</button>
+                        <button class="btn btn-outlinePreset" onclick="setTimer(25)">25m</button>
+                        <button class="btn btn-outlinePreset" onclick="setTimer(45)">45m</button>
+                        <button class="btn btn-outlinePreset" onclick="setTimer(50)">50m</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Nueva Sección de Calendario -->
+        <section class="calendar-section glass mt-2">
+            <header class="section-header">
+                <h3><span class="material-icons">calendar_today</span> Calendario de Actividades</h3>
+                <div class="calendar-nav">
+                    <button onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
+                    <h4 id="current-month-display">Marzo 2026</h4>
+                    <button onclick="changeMonth(1)"><span class="material-icons">chevron_right</span></button>
+                </div>
+            </header>
+
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Modal para Actividades del Calendario -->
+        <div id="activity-modal" class="modal">
+            <div class="modal-content glass">
+                <div class="modal-header">
+                    <h3 id="modal-date-display">Actividades para el día</h3>
+                    <span class="close-modal material-icons" onclick="closeModal()">close</span>
+                </div>
+                <div class="modal-body">
+                    <ul id="day-activities-list" class="activity-list"></ul>
+                    <hr>
+                    <h4>Agregar Actividad</h4>
+                    <form id="activity-form" class="activity-form">
+                        <input type="text" id="activity-name" placeholder="Ej: Clase de Matemáticas" required>
+                        <input type="time" id="activity-time" required>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
